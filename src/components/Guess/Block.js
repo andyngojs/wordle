@@ -1,13 +1,13 @@
-import React, {useMemo, useContext} from 'react';
-import {View, Text, StyleSheet, Dimensions} from 'react-native';
-import {STATUS} from '../../constant';
+import React, { useMemo, useContext } from 'react';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { STATUS } from '../../constant';
 import Context from '../../Context';
 
 const widthWindow = Math.floor(Dimensions.get('window').width / 10 + 21);
 const heightWindow = Math.floor(Dimensions.get('window').height / 22 + 22);
 
-function Block({letter, status}) {
-  const {styleTheme} = useContext(Context);
+function Block({ letter, status }) {
+  const { styleTheme } = useContext(Context);
 
   const stylesStatus = useMemo(() => {
     switch (status) {
@@ -51,9 +51,10 @@ function Block({letter, status}) {
   );
 
   const textStyle = useMemo(
-    () => ({color: stylesStatus.color}),
+    () => ({ color: stylesStatus.color }),
     [stylesStatus],
   );
+  console.log('render')
 
   return (
     <View style={[styles.container, blockStyle]}>
@@ -62,7 +63,7 @@ function Block({letter, status}) {
   );
 }
 
-export default React.memo(Block);
+export default Block;
 
 const styles = StyleSheet.create({
   container: {

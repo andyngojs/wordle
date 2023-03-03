@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {View, StyleSheet} from 'react-native';
 import Block from './Block';
 
 function GuessRow({row}) {
-  const renderBlock = (item, index) => {
+  const renderBlock = useCallback((item, index) => {
     return <Block key={index} letter={item.value} status={item.status} />;
-  };
+  }, [])
 
   return (
     <View style={styles.guessRow}>

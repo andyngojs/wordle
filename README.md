@@ -1,6 +1,10 @@
  # Worle Game
 
- This is a exercise training intern React Native at Abaha
+## Installation
+### `Android`
+Install game by file APK 
 
+Download APK here: 
 
-Estimate time: 30h
+### `IOS`
+Not supported yet.

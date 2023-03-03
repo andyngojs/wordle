@@ -1,68 +1,50 @@
-import React, {useState, useCallback, useMemo, useEffect} from 'react';
-import {
-  SafeAreaView,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Keyboard from './components/Keyboard';
-import GuessRow from './components/Guess';
-import {initArr2D} from './helper';
-import {
-  ENTER,
-  CLEAR,
-  WORDS_LIST,
-  DARK_THEME,
-  LIGHT_THEME,
-  STATUS,
-} from './constant';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { SafeAreaView, View, StyleSheet } from 'react-native';
 import Context from './Context';
+import useTheme from './Theme/useTheme';
+import { initArr2D } from './helper';
+import { ENTER, CLEAR, WORDS_LIST, STATUS } from './constant';
+import Header from './components/Header';
+import GuessRow from './components/Guess';
+import Keyboard from './components/Keyboard';
 
 export default function App() {
   const [guessData, setGuessData] = useState(initArr2D());
   const [indexRowActive, setIndexRowActive] = useState(0);
   const [indexColActive, setIndexColActive] = useState(0);
+
   const [greenCap, setGreenCap] = useState([]);
   const [yellowCap, setYellowCap] = useState([]);
   const [grayCap, setGrayCap] = useState([]);
-  const [darkTheme, setDarkTheme] = useState(false);
-  const [styleTheme, setStyleTheme] = useState({});
 
-  const keyWord = useMemo(() => {
-    return WORDS_LIST[Math.floor(Math.random() * 12)].split('');
-  }, []);
+  const { styleTheme, theme, handleSwitchTheme } = useTheme();
 
-  const handleSwitchTheme = useCallback(() => {
-    setDarkTheme((prevState) => !prevState);
+  const restartGame = useCallback(() => {
+    getRandomNumber()
+    console.log('res');
+    setIndexRowActive(0);
+    setIndexColActive(0);
+    setGreenCap([]);
+    setGrayCap([]);
+    setYellowCap([]);
+  }, [initArr2D]);
+
+  const getRandomNumber = useCallback(() => {
+    return Math.floor(Math.random() * 12);
   }, []);
 
   useEffect(() => {
-    if (darkTheme) {
-      setStyleTheme(DARK_THEME);
-    } else {
-      setStyleTheme(LIGHT_THEME);
-    }
-  }, [darkTheme]);
+    restartGame()
 
-  const styleContainer = useMemo(
-    () => ({
-      backgroundColor: styleTheme.backgroundColor,
-    }),
-    [styleTheme],
-  );
+  }, [])
 
-  const styleText = useMemo(
-    () => ({
-      color: styleTheme.color,
-    }),
-    [styleTheme],
-  );
+  const keyWord = useMemo(() => {
+    return WORDS_LIST[getRandomNumber()].split('');
+  }, [WORDS_LIST, getRandomNumber]);
 
   const handleTypingKey = useCallback(
     (key) => {
-      const guessDataClone = [...guessData];
+      let guessDataClone = [...guessData];
 
       if (key !== ENTER && key !== CLEAR) {
         guessDataClone.map((row, indexRow) => {
@@ -95,12 +77,17 @@ export default function App() {
       if (key === ENTER) {
         let wordGuessed = '';
         for (let i = 0; i < 5; i++) {
-          wordGuessed = wordGuessed.concat('', guessDataClone[indexRowActive][i].value);
+          if (guessDataClone[indexRowActive][i].status === STATUS.NORMAL) {
+            alert('You have not entered enough words!');
+            return;
+          }
+
+          wordGuessed = wordGuessed.concat(
+            '',
+            guessDataClone[indexRowActive][i].value,
+          );
         }
-        if (
-          indexColActive === guessDataClone[indexRowActive].length 
-          && WORDS_LIST.includes(wordGuessed)
-        ) {
+        if (WORDS_LIST.includes(wordGuessed)) {
           checkingWord(guessDataClone);
           if (wordGuessed !== keyWord.join('')) {
             setIndexRowActive((prevState) =>
@@ -108,6 +95,7 @@ export default function App() {
             );
             setIndexColActive(0);
           } else {
+            guessDataClone = []
             alert('You guessed the word correctly!');
           }
         } else {
@@ -132,7 +120,9 @@ export default function App() {
             ...prevState,
             guessDataClone[indexRowActive][col].value,
           ]);
-        } else if (keyWord.includes(guessDataClone[indexRowActive][col].value)) {
+        } else if (
+          keyWord.includes(guessDataClone[indexRowActive][col].value)
+        ) {
           guessDataClone[indexRowActive][col].status = STATUS.YELLOW;
           setYellowCap((prevState) => [
             ...prevState,
@@ -153,45 +143,37 @@ export default function App() {
     [keyWord, indexRowActive],
   );
 
-  const renderGuessRow = (row, indexRow) => (
-    <GuessRow key={indexRow} row={row} />
+  const styleContainer = useMemo(
+    () => ({
+      backgroundColor: styleTheme.backgroundColor,
+    }),
+    [styleTheme],
   );
 
   const value = {
+    theme,
     styleTheme,
+    handleSwitchTheme,
+    onTypingKey: handleTypingKey,
+    greenCap,
+    yellowCap,
+    grayCap,
   };
+
+  const renderMatrix = useCallback(() => {
+    return guessData.map((item, index) => {
+      return <GuessRow key={index} row={item} />;
+    });
+  }, [guessData]);
 
   return (
     <Context.Provider value={value}>
       <SafeAreaView style={[styles.container, styleContainer]}>
-        <View style={styles.headerContainer}>
-          <Text style={[styles.header, styleText]}>Wordle {keyWord}</Text>
+        <Header keyword={keyWord} />
 
-          <TouchableOpacity onPress={handleSwitchTheme}>
-            {darkTheme ? (
-              <Icon 
-                name="weather-night"
-                style={[styles.iconTheme, styleText]}
-              />
-            ) : (
-              <Icon
-                name="weather-sunny"
-                style={[styles.iconTheme, styleText]}
-              />
-            )}
-          </TouchableOpacity>
-        </View>
+        <View style={styles.guessContainer}>{renderMatrix()}</View>
 
-        <View style={styles.guessContainer}>
-          {guessData.map((item, index) => renderGuessRow(item, index))}
-        </View>
-
-        <Keyboard
-          onTypingKey={handleTypingKey}
-          greenCap={greenCap}
-          yellowCap={yellowCap}
-          grayCap={grayCap}
-        />
+        <Keyboard />
       </SafeAreaView>
     </Context.Provider>
   );
@@ -201,22 +183,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerContainer: {
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginHorizontal: 32,
-  },
-  header: {
-    fontSize: 30,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
   guessContainer: {
     flex: 2,
-  },
-  iconTheme: {
-    fontSize: 26,
   },
 });

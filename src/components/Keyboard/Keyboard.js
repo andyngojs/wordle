@@ -1,16 +1,11 @@
-import React, {useCallback, useContext} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableHighlight,
-} from 'react-native';
-import {KEYS} from '../../constant';
-import { keyBoard } from '../../helper';
+import React, { useCallback, useContext } from 'react';
+import { View, Text, StyleSheet, TouchableHighlight } from 'react-native';
+import { KEYS } from '../../constant';
 import Context from '../../Context';
 
-function Keyboard({onTypingKey, greenCap, yellowCap, grayCap}) {
-  const {styleTheme} = useContext(Context);
+function Keyboard() {
+  const { styleTheme, onTypingKey, greenCap, yellowCap, grayCap } =
+    useContext(Context);
 
   const styleKeyboardStatus = useCallback(
     (key) => {
@@ -19,14 +14,12 @@ function Keyboard({onTypingKey, greenCap, yellowCap, grayCap}) {
           backgroundColor: styleTheme.primary,
           color: styleTheme.white,
         };
-      }
-      if (yellowCap.includes(key)) {
+      } else if (yellowCap.includes(key)) {
         return {
           backgroundColor: styleTheme.secondary,
           color: styleTheme.white,
         };
-      }
-      if (grayCap.includes(key)) {
+      } else if (grayCap.includes(key)) {
         return {
           backgroundColor: styleTheme.grey,
           color: styleTheme.white,
@@ -34,6 +27,7 @@ function Keyboard({onTypingKey, greenCap, yellowCap, grayCap}) {
       }
       return {
         backgroundColor: styleTheme.surface,
+        color: styleTheme.color
       };
     },
     [greenCap, yellowCap, grayCap, styleTheme],
@@ -68,9 +62,7 @@ function Keyboard({onTypingKey, greenCap, yellowCap, grayCap}) {
         key={index}
         style={[styles.keyBtn, keyboardStyle(key)]}
         onPress={() => onTypingKey(key)}>
-        <Text style={[styles.keyText, keyboardTextStyle(key)]}>
-          {key}
-        </Text>
+        <Text style={[styles.keyText, keyboardTextStyle(key)]}>{key}</Text>
       </TouchableHighlight>
     );
   };
@@ -101,11 +93,11 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1
+    flex: 1,
   },
   keyText: {
     fontSize: 16,
     fontWeight: '500',
-    paddingVertical: 18
+    paddingVertical: 18,
   },
 });
